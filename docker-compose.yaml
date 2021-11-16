@@ -1,7 +1,7 @@
 version: '3.2'
 services:
   python-redis:
-    image: maciek
+    image: krajewskim/python-api:new
     ports:
       - 5002:5002
     environment:
