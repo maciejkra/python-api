@@ -13,17 +13,17 @@ if level == "INFO":
 if level == "DEBUG":
     LOGGER.setLevel(logging.DEBUG)
 
-hostname=socket.gethostname()
-
 app = FastAPI()
-
+hostname=socket.gethostname()
+redis_host =  os.environ.get("REDIS_HOST","redis")
+redis_port =  os.environ.get("REDIS_PORT",6379)
+LOGGER.info('LOG_LEVEL has value %s', level)
+LOGGER.info('REDIS_HOST has value %s', redis_host)
+LOGGER.info('REDIS_PORT has value %s', redis_port)
 
 def get_redis():
-    redis_host =  os.environ.get("REDIS_HOST","redis")
-    redis_port =  os.environ.get("REDIS_PORT",6379)
     r = redis.Redis(host=redis_host, port=redis_port, db=0)
     return r
-
 
 @app.get("/")
 async def info():
