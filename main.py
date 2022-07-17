@@ -35,6 +35,7 @@ async def healthz():
 
 @app.get("/api/v1/info")
 async def info():
+    started_at = time.time()
     r = get_redis()
     counter =  r.get('counter')
     if counter is None:
@@ -42,17 +43,19 @@ async def info():
     else:
         counter = counter.decode('utf-8')
     LOGGER.info('counter var is %s', counter)
-    started_at = time.time()
     duration = time.time() - started_at
     LOGGER.debug('Request took %s', duration)
     return {"message": "Counter", "hostname": hostname, "value": counter}
 
 @app.post("/api/v1/info")
 def info_post():
+    started_at = time.time()
     r = get_redis()
     previous = r.get('counter')
     if previous is None:
         r.set('counter', 1)
     else:
         r.incr('counter')
+    duration = time.time() - started_at
+    LOGGER.debug('Request took %s', duration)
     return {"message": "OK", "hostname": hostname}
