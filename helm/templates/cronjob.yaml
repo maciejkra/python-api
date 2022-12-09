@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "python-api.fullname" . }}
+  labels:
+    {{- include "python-api.labels" . | nindent 4 }}
+spec:
+  schedule: "{{ .Values.cronjob.schedule }}"
+  concurrencyPolicy: Replace
+  jobTemplate:
+    metadata:
+      labels:
+        {{- include "python-api.labels" . | nindent 8 }}
+    spec:
+      template:
+        metadata:
+          labels:
+            projekt: python-api
+        spec:
+          containers:
+          - name: hello
+            image: nginx
+            args:
+            - curl
+            - -XPOST
+            - {{ include "python-api.fullname" . }}-python/api/v1/info
+          restartPolicy: Never

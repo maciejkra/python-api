@@ -1,0 +1,10 @@
+You can check the counter of the app by running
+
+   curl {{ .Values.ingress.hostName }}/api/v1/info
+
+To increase the counter run:
+
+   curl -X POST {{ .Values.ingress.hostName }}/api/v1/info
+
+
+HAVE FUN!!

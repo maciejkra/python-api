@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "python-api.fullname" . }}
+  labels:
+    {{- include "python-api.labels" . | nindent 4 }}
+spec:
+  ingressClassName: {{ .Values.ingress.ingressClassName }}
+  rules:
+  - host: "{{ .Values.ingress.hostName }}"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "python-api.fullname" . }}-python
+            port:
+              number: 80

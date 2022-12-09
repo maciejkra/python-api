@@ -1,0 +1,7 @@
+python:
+  replicas: 3
+  logLevel: INFO
+  affinity: true
+
+ingress:
+  hostName: "python.206.189.242.155.nip.io"

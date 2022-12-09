@@ -1,0 +1,37 @@
+redis:
+  image:
+    tag: alpine
+  replicas: 1
+  storageSize: 10Mi
+  resource:
+    limits:
+      cpu: 0.2
+      ram: 100Mi
+    requests:
+      cpu: 0.1
+      ram: 70Mi
+  imagePullPolicy: Always
+  pvc:
+    storageClass: 
+
+python:
+  image:
+    tag: new
+  replicas: 1
+  logLevel: DEBUG
+  affinity: true
+  resource:
+    limits:
+      cpu: 0.2
+      ram: 100Mi
+    requests:
+      cpu: 0.1
+      ram: 70Mi
+  imagePullPolicy: Always
+
+ingress:
+  hostName: "python.127.0.0.1.nip.io"
+  ingressClassName: nginx
+
+cronjob:
+  schedule: "* * * * *"
