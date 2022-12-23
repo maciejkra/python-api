@@ -46,9 +46,9 @@ app = FastAPI()
 hostname=socket.gethostname()
 redis_host =  os.environ.get("REDIS_HOST","redis")
 redis_port =  os.environ.get("REDIS_PORT",6379)
-LOGGER.info('LOG_LEVEL has value %s', level)
-LOGGER.info('REDIS_HOST has value %s', redis_host)
-LOGGER.info('REDIS_PORT has value %s', redis_port)
+LOGGER.info(f"LOG_LEVEL has value {level}")
+LOGGER.info(f"REDIS_HOST has value {redis_host}")
+LOGGER.info(f"REDIS_PORT has value {redis_port}")
 
 def get_redis():
     r = redis.Redis(host=redis_host, port=redis_port, db=0)
@@ -69,11 +69,9 @@ async def info():
     counter =  r.get('counter')
     if counter is None:
         counter = 0
-    else:
-        counter = counter.decode('utf-8')
-    LOGGER.info('counter var is %s', counter)
+    LOGGER.info(f"counter var is {counter}")
     duration = time.time() - started_at
-    LOGGER.debug('Request took %s', duration)
+    LOGGER.debug(f"Request took {duration}")
     return {"message": "Counter", "hostname": hostname, "value": counter}
 
 @app.post("/api/v1/info")
@@ -86,5 +84,5 @@ def info_post():
     else:
         r.incr('counter')
     duration = time.time() - started_at
-    LOGGER.debug('Request took %s', duration)
+    LOGGER.debug(f"Request took {duration}")
     return {"message": "OK", "hostname": hostname}
