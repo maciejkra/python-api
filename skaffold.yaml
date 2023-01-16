@@ -1,0 +1,33 @@
+apiVersion: skaffold/v4beta1
+kind: Config
+metadata:
+  name: python-api
+build:
+  platforms: ["linux/arm64", "linux/amd64"]
+  tagPolicy:
+    customTemplate:
+      template: "{{.FOO}}_{{.BAR}}"
+      components:
+      - name: FOO
+        dateTime:
+          format: "2006-01-02"
+          timezone: "UTC"
+      - name: BAR
+        gitCommit:
+          variant: AbbrevCommitSha
+  artifacts:
+  - image: krajewskim/python-api
+    docker:
+      dockerfile: Dockerfile
+  local:
+    push: true
+    concurrency: 5
+deploy:
+  helm:
+    releases:
+    - name: python-api
+      chartPath: helm
+      valuesFiles:
+      - helm/values.yaml
+      - helm/values_prod.yaml
+      version: 0.1.0
