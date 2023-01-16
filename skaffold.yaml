@@ -29,5 +29,7 @@ deploy:
       chartPath: helm
       valuesFiles:
       - helm/values.yaml
-      - helm/values_prod.yaml
-      version: 0.1.0
+      version: 1.0.0
+      setValueTemplates:
+        python.image.repository: "{{.IMAGE_REPO_krajewskim_python_api}}"
+        python.image.tag: "{{.IMAGE_TAG_krajewskim_python_api}}"
