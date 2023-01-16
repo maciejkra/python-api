@@ -1,5 +1,6 @@
 redis:
   image:
+    repository: redis
     tag: alpine
   replicas: 1
   storageSize: 10Mi
@@ -16,10 +17,11 @@ redis:
 
 python:
   image:
+    repository: krajewskim/python-api
     tag: new
   replicas: 1
   logLevel: DEBUG
-  affinity: true
+  affinity: false
   resource:
     limits:
       cpu: 0.2

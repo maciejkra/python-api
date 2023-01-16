@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: python-api
-        image: "krajewskim/python-api:{{ .Values.python.image.tag }}"
+        image: "{{ .Values.python.image.repository }}:{{ .Values.python.image.tag }}"
         imagePullPolicy: {{ .Values.python.imagePullPolicy }}
         resources:
           requests:
