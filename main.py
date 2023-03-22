@@ -1,9 +1,17 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
+from fastapi.responses import JSONResponse
+from typing import Any
 import redis
 import socket
 import logging
 import os
 import time
+import json
+
+class CustomJSONResponse(JSONResponse):
+    def render(self, content: Any) -> bytes:
+        json_string = json.dumps(content, ensure_ascii=False, allow_nan=False, indent=None, separators=(",", ":"))
+        return (json_string + "\n").encode("utf-8")
 
 LOG_CONFIG = {
     "version": 1,
@@ -54,15 +62,20 @@ def get_redis():
     r = redis.Redis(host=redis_host, port=redis_port, db=0)
     return r
 
-@app.get("/")
+@app.get("/", response_class=CustomJSONResponse)
 async def info():
     return {"message": "Hello World", "hostname": hostname}
 
-@app.get("/healthz")
+@app.get("/healthz", response_class=CustomJSONResponse)
 async def healthz():
-    return {"message": "Service is OK", "hostname": hostname}
+    r = get_redis()
+    try:
+        r.ping()
+        return {"message": "Service is OK", "hostname": hostname}
+    except redis.exceptions.ConnectionError:
+        return CustomJSONResponse(content={"message": "Service is NOT OK", "hostname": hostname}, status_code=500)
 
-@app.get("/api/v1/info")
+@app.get("/api/v1/info", response_class=CustomJSONResponse)
 async def info():
     started_at = time.time()
     r = get_redis()
@@ -74,7 +87,7 @@ async def info():
     LOGGER.debug(f"Request took {duration}")
     return {"message": "Counter", "hostname": hostname, "value": counter}
 
-@app.post("/api/v1/info")
+@app.post("/api/v1/info", response_class=CustomJSONResponse)
 def info_post():
     started_at = time.time()
     r = get_redis()
