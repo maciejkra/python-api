@@ -7,6 +7,7 @@ import logging
 import os
 import time
 import json
+import logging.config
 
 class CustomJSONResponse(JSONResponse):
     def render(self, content: Any) -> bytes:
