@@ -82,7 +82,7 @@ async def info():
     counter =  r.get('counter')
     if counter is None:
         counter = 0
-    LOGGER.info(f"counter var is {counter}")
+    LOGGER.info(f"counter var is {counter.decode('utf-8')}")
     duration = time.time() - started_at
     LOGGER.debug(f"Request took {duration}")
     return {"message": "Counter", "hostname": hostname, "value": counter}
