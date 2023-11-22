@@ -9,6 +9,6 @@ services:
   redis:
     image: "redis:alpine"
     volumes:
-      - db_data:/var/lib/mysql
+      - db_data:/data
 volumes:
   db_data:
