@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request, Response
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
+from prometheus_client import Counter, generate_latest, CONTENT_TYPE_LATEST
 from typing import Any
 import redis
 import socket
@@ -7,6 +8,7 @@ import logging
 import os
 import time
 import json
+
 
 class CustomJSONResponse(JSONResponse):
     def render(self, content: Any) -> bytes:
@@ -43,7 +45,7 @@ logging.config.dictConfig(LOG_CONFIG)
 
 LOGGER = logging.getLogger("uvicorn.info")
 
-level = os.environ.get("LOG_LEVEL","INFO")
+level = os.environ.get("LOG_LEVEL", "INFO")
 if level == "INFO":
     LOGGER.setLevel(logging.INFO)
 if level == "DEBUG":
@@ -51,19 +53,29 @@ if level == "DEBUG":
 
 
 app = FastAPI()
-hostname=socket.gethostname()
-redis_host =  os.environ.get("REDIS_HOST","redis")
-redis_port =  os.environ.get("REDIS_PORT",6379)
+hostname = socket.gethostname()
+redis_host = os.environ.get("REDIS_HOST", "redis")
+redis_port = os.environ.get("REDIS_PORT", 6379)
 LOGGER.info(f"LOG_LEVEL has value {level}")
 LOGGER.info(f"REDIS_HOST has value {redis_host}")
 LOGGER.info(f"REDIS_PORT has value {redis_port}")
+
+# Create a counter for tracking requests to /api/v1/info
+info_requests_counter = Counter('info_requests_total', 'Total number of requests to /api/v1/info')
 
 def get_redis():
     r = redis.Redis(host=redis_host, port=redis_port, db=0)
     return r
 
+@app.middleware("http")
+async def count_requests(request: Request, call_next):
+    response = await call_next(request)
+    if request.url.path == "/api/v1/info":
+        info_requests_counter.inc()
+    return response
+
 @app.get("/", response_class=CustomJSONResponse)
-async def info():
+async def root():
     return {"message": "Hello World", "hostname": hostname}
 
 @app.get("/healthz", response_class=CustomJSONResponse)
@@ -79,10 +91,12 @@ async def healthz():
 async def info():
     started_at = time.time()
     r = get_redis()
-    counter =  r.get('counter')
+    counter = r.get('counter')
     if counter is None:
         counter = 0
-    LOGGER.info(f"counter var is {counter.decode('utf-8')}")
+    else:
+        counter = int(counter)
+    LOGGER.info(f"counter var is {counter}")
     duration = time.time() - started_at
     LOGGER.debug(f"Request took {duration}")
     return {"message": "Counter", "hostname": hostname, "value": counter}
@@ -99,3 +113,7 @@ def info_post():
     duration = time.time() - started_at
     LOGGER.debug(f"Request took {duration}")
     return {"message": "OK", "hostname": hostname}
+
+@app.get("/metrics", response_class=PlainTextResponse)
+async def metrics():
+    return PlainTextResponse(generate_latest(), media_type=CONTENT_TYPE_LATEST)
