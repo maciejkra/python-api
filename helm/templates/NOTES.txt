@@ -1,10 +1,10 @@
-You can check the counter of the app by running
+Python app is installed!
 
-   curl {{ .Values.ingress.hostName }}/api/v1/info
+RUN:
+    curl {{ .Values.ingress.host }} - to get the counter
 
-To increase the counter run:
+or
 
-   curl -X POST {{ .Values.ingress.hostName }}/api/v1/info
+    curl -XPOST {{ .Values.ingress.host }} - to increase the counter
 
-
-HAVE FUN!!
+Have fun!!

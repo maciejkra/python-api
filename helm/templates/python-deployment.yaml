@@ -1,54 +1,55 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: "{{ include "python-api.fullname" . }}-python"
+  name: {{ include "python-api-app.name" . }}
   labels:
-    {{- include "python-api.labels" . | nindent 4 }}
+    {{- include "python-api.labels" $ | nindent 4 }}
 spec:
   replicas: {{ .Values.python.replicas }}
+  revisionHistoryLimit: 0
   selector:
     matchLabels:
-      app: python-api
-      {{- include "python-api.labels" . | nindent 6 }}
+      {{- include "python-api.selectorLabels" . | nindent 6 }}
+      app: python
   template:
     metadata:
       labels:
-        app: python-api
-        {{- include "python-api.labels" . | nindent 8 }}
+        app: python
+        {{- include "python-api.labels" $ | nindent 8 }}
     spec:
+      enableServiceLinks: false
       containers:
       - name: python-api
-        image: "{{ .Values.python.image.repository }}:{{ .Values.python.image.tag }}"
-        imagePullPolicy: {{ .Values.python.imagePullPolicy }}
+        image: "{{- with .Values.registry }}{{ . }}/{{- end }}{{ .Values.python.image}}:{{ .Values.python.tag }}"
         resources:
           requests:
-            cpu: {{ .Values.python.resource.requests.cpu }}
-            memory: {{ .Values.python.resource.requests.ram }}
+            cpu: {{ .Values.python.resources.requests.cpu }}
+            memory: {{ .Values.python.resources.requests.mem }}
           limits:
-            cpu: {{ .Values.python.resource.limits.cpu }}
-            memory: {{ .Values.python.resource.limits.ram }}
+            cpu: {{ .Values.python.resources.limits.cpu }}
+            memory: {{ .Values.python.resources.limits.mem }}            
         ports:
-        - containerPort: 5002
-          name: api
-        envFrom:
-          - configMapRef:
-              name: {{ include "python-api.fullname" . }}
-        readinessProbe:
-          tcpSocket:
-            port: api
+          - containerPort: 5002
+            name: api
         livenessProbe:
           httpGet:
             path: /healthz
             port: api
-      {{- if .Values.python.affinity }}
+        readinessProbe:
+          tcpSocket:
+            port: api
+        envFrom:
+          - configMapRef:
+              name: {{ include "python-api.fullname" . }}
+      {{- if .Values.python.affinity }}    
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-              - key: app
-                operator: In
-                values:
-                - python-api
-            topologyKey: "kubernetes.io/hostname"
+            - labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - python
+              topologyKey: kubernetes.io/hostname
       {{- end }}

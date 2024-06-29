@@ -2,18 +2,21 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ include "python-api.fullname" . }}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /api/v1/info
   labels:
     {{- include "python-api.labels" . | nindent 4 }}
 spec:
   ingressClassName: {{ .Values.ingress.ingressClassName }}
   rules:
-  - host: "{{ .Values.ingress.hostName }}"
+  - host: {{ .Values.ingress.host }}
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: {{ include "python-api.fullname" . }}-python
+            name: {{ include "python-api-app.name" . }}
             port:
-              number: 80
+              name: api
+ 

@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "python-api-redis.name" . }}
+  labels:
+    {{- include "python-api.labels" $ | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "python-api.selectorLabels" . | nindent 6 }}
+      app: redis
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: redis
+        {{- include "python-api.labels" $ | nindent 8 }}
+    spec:
+      containers:
+      - name: redis
+        image: redis:alpine
+        resources:
+          requests:
+            cpu: {{ .Values.redis.resources.requests.cpu }}
+            memory: {{ .Values.redis.resources.requests.mem }}
+          limits:
+            cpu: {{ .Values.redis.resources.limits.cpu }}
+            memory: {{ .Values.redis.resources.limits.mem }} 
+        ports:
+        - containerPort: 6379
+        livenessProbe:
+          exec:
+            command: ["redis-cli", "ping"]
+        readinessProbe:
+          tcpSocket:
+            port: 6379
+        volumeMounts:
+        - mountPath: /data
+          name: redis-pvc
+  volumeClaimTemplates:
+  - metadata:
+      name: redis-pvc
+      labels:
+        project: python
+    spec:
+      {{- with .Values.redis.storageClassName }}
+      storageClassName: {{ . }}
+      {{- end }}
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: {{ .Values.redis.size }}

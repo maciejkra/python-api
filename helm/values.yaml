@@ -1,39 +1,36 @@
-redis:
-  image:
-    repository: redis
-    tag: alpine
-  replicas: 1
-  storageSize: 10Mi
-  resource:
-    limits:
-      cpu: 0.2
-      ram: 100Mi
-    requests:
-      cpu: 0.1
-      ram: 70Mi
-  imagePullPolicy: Always
-  pvc:
-    storageClass: 
-
+registry:
+nameOverride:
+fullnameOverride:
 python:
-  image:
-    repository: krajewskim/python-api
-    tag: new
+  logLevel: INFO
   replicas: 1
-  logLevel: DEBUG
-  affinity: false
-  resource:
-    limits:
-      cpu: 0.2
-      ram: 100Mi
+  image: krajewskim/python-api
+  tag: new
+  resources:
     requests:
       cpu: 0.1
-      ram: 70Mi
-  imagePullPolicy: Always
+      mem: 100Mi
+    limits:
+      cpu: 1
+      mem: 250Mi
+  affinity: false
+
+cronjobs:
+  cronjob1: "* * * * *"
+  cronjob2: "*/2 * * * *"
 
 ingress:
-  hostName: "python.127.0.0.1.nip.io"
   ingressClassName: nginx
+  host: api.127.0.0.1.nip.io
 
-cronjob:
-  schedule: "* * * * *"
+redis:
+  storageClassName:
+  size: 10Mi
+  resources:
+    requests:
+      cpu: 0.1
+      mem: 100Mi
+    limits:
+      cpu: 1
+      mem: 250Mi
+

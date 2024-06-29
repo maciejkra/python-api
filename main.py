@@ -64,8 +64,13 @@ LOGGER.info(f"REDIS_PORT has value {redis_port}")
 info_requests_counter = Counter('info_requests_total', 'Total number of requests to /api/v1/info')
 
 def get_redis():
-    r = redis.Redis(host=redis_host, port=redis_port, db=0)
-    return r
+    try:
+        r = redis.Redis(host=redis_host, port=redis_port, db=0)
+        r.ping()  # Test connection
+        return r
+    except (redis.ConnectionError, socket.gaierror) as e:
+        LOGGER.error(f"Redis connection error: {e}")
+        raise RuntimeError("Application cannot connect to Redis")
 
 @app.middleware("http")
 async def count_requests(request: Request, call_next):
@@ -89,30 +94,39 @@ async def healthz():
 
 @app.get("/api/v1/info", response_class=CustomJSONResponse)
 async def info():
-    started_at = time.time()
-    r = get_redis()
-    counter = r.get('counter')
-    if counter is None:
-        counter = 0
-    else:
-        counter = int(counter)
-    LOGGER.info(f"counter var is {counter}")
-    duration = time.time() - started_at
-    LOGGER.debug(f"Request took {duration}")
-    return {"message": "Counter", "hostname": hostname, "value": counter}
+    try:
+        started_at = time.time()
+        r = get_redis()
+        counter = r.get('counter')
+        if counter is None:
+            counter = 0
+        else:
+            counter = int(counter)
+        LOGGER.info(f"counter var is {counter}")
+        duration = time.time() - started_at
+        LOGGER.debug(f"Request took {duration}")
+        return {"message": "Counter", "hostname": hostname, "value": counter}
+    except RuntimeError as e:
+        LOGGER.error(f"Error in /api/v1/info: {e}")
+        return CustomJSONResponse(content={"Can not connect to redis": str(e)}, status_code=500)
+
 
 @app.post("/api/v1/info", response_class=CustomJSONResponse)
 def info_post():
-    started_at = time.time()
-    r = get_redis()
-    previous = r.get('counter')
-    if previous is None:
-        r.set('counter', 1)
-    else:
-        r.incr('counter')
-    duration = time.time() - started_at
-    LOGGER.debug(f"Request took {duration}")
-    return {"message": "OK", "hostname": hostname}
+    try:
+        started_at = time.time()
+        r = get_redis()
+        previous = r.get('counter')
+        if previous is None:
+            r.set('counter', 1)
+        else:
+            r.incr('counter')
+        duration = time.time() - started_at
+        LOGGER.debug(f"Request took {duration}")
+        return {"message": "OK", "hostname": hostname}
+    except RuntimeError as e:
+        LOGGER.error(f"Error in /api/v1/info: {e}")
+        return CustomJSONResponse(content={"Can not connect to redis": str(e)}, status_code=500)
 
 @app.get("/metrics", response_class=PlainTextResponse)
 async def metrics():
