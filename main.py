@@ -1,14 +1,13 @@
-from fastapi import FastAPI, Request, Response
-from fastapi.responses import JSONResponse, PlainTextResponse
-from prometheus_client import Counter, generate_latest, CONTENT_TYPE_LATEST
-from typing import Any
 import redis
 import socket
 import logging
 import os
 import time
 import json
-
+from fastapi import FastAPI, Request, Response
+from fastapi.responses import JSONResponse, PlainTextResponse
+from prometheus_client import Counter, generate_latest, CONTENT_TYPE_LATEST
+from typing import Any
 
 class CustomJSONResponse(JSONResponse):
     def render(self, content: Any) -> bytes:
@@ -65,7 +64,13 @@ info_requests_counter = Counter('info_requests_total', 'Total number of requests
 
 def get_redis():
     try:
-        r = redis.Redis(host=redis_host, port=redis_port, db=0)
+        r = redis.Redis(
+            host=redis_host,
+            port=redis_port,
+            db=0,
+            socket_connect_timeout=3,  # Connection timeout in seconds
+            socket_timeout=3  # Read/write timeout in seconds
+        )
         r.ping()  # Test connection
         return r
     except (redis.ConnectionError, socket.gaierror) as e:
@@ -109,7 +114,6 @@ async def info():
     except RuntimeError as e:
         LOGGER.error(f"Error in /api/v1/info: {e}")
         return CustomJSONResponse(content={"Can not connect to redis": str(e)}, status_code=500)
-
 
 @app.post("/api/v1/info", response_class=CustomJSONResponse)
 def info_post():
