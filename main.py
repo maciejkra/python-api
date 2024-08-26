@@ -90,11 +90,15 @@ async def root():
 
 @app.get("/healthz", response_class=CustomJSONResponse)
 async def healthz():
-    r = get_redis()
     try:
+        r = get_redis()
         r.ping()
         return {"message": "Service is OK", "hostname": hostname}
-    except redis.exceptions.ConnectionError:
+    except (redis.ConnectionError, socket.gaierror) as e:
+        LOGGER.error(f"Health check failed: {e}")
+        return CustomJSONResponse(content={"message": "Service is NOT OK", "hostname": hostname}, status_code=500)
+    except Exception as e:
+        LOGGER.error(f"Unexpected error during health check: {e}")
         return CustomJSONResponse(content={"message": "Service is NOT OK", "hostname": hostname}, status_code=500)
 
 @app.get("/api/v1/info", response_class=CustomJSONResponse)
@@ -106,7 +110,7 @@ async def info():
         if counter is None:
             counter = 0
         else:
-            counter = int(counter)
+            counter = int(counter.decode('utf-8'))  # Decode and convert to integer
         LOGGER.info(f"counter var is {counter}")
         duration = time.time() - started_at
         LOGGER.debug(f"Request took {duration}")
