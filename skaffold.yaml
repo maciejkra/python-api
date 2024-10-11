@@ -31,5 +31,5 @@ deploy:
       - helm/values.yaml
       version: 1.0.0
       setValueTemplates:
-        python.image.repository: "{{.IMAGE_REPO_krajewskim_python_api}}"
-        python.image.tag: "{{.IMAGE_TAG_krajewskim_python_api}}"
+        python.image: "{{.IMAGE_REPO_krajewskim_python_api}}"
+        python.tag: "{{.IMAGE_TAG_krajewskim_python_api}}"
