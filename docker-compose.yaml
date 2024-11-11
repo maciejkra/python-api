@@ -1,14 +1,42 @@
 services:
   python-api:
-    image: krajewskim/python-api:new
+    image: python-api
+    build: ./
     ports:
       - 5002:5002
     environment:
       LOG_LEVEL: DEBUG
       REDIS_HOST: redis
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318/v1/traces
+      OTEL_SERVICE_NAME: python-api
   redis:
     image: "redis:alpine"
     volumes:
       - db_data:/data
+
+  tempo:
+    image: grafana/tempo
+    # command:
+    #   - --target=all
+    #   - --storage.trace.backend=local
+    #   - --storage.trace.local.path=/var/tempo
+    #   - --auth.enabled=false
+    #   - --compactor.compaction.block-retention=24h
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./tempo.yaml:/etc/tempo.yaml
+    ports:
+      - "3200:3200"
+
+  grafana:
+    image: grafana/grafana
+    environment:
+     - GF_AUTH_ANONYMOUS_ENABLED=true
+     - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+     - GF_AUTH_DISABLE_LOGIN_FORM=true
+    ports:
+     - 0.0.0.0:3000:3000
+
+
 volumes:
   db_data:
