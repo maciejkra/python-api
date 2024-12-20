@@ -3,8 +3,8 @@ kind: ConfigMap
 metadata:
   name: {{ include "python-api.fullname" . }}
   labels:
-   {{- include "python-api.labels" . | nindent 4 }}
+    {{- include "python-api.labels" . | nindent 4 }}
 data:
-  REDIS_HOST: {{ include "python-api-redis.name" . }}
-  REDIS_PORT: "6379"
   LOG_LEVEL: {{ .Values.python.logLevel }}
+  REDIS_HOST: {{ include "python-api.fullname" . }}-db
+  REDIS_PORT: "6379"

@@ -1,33 +1,29 @@
-{{- range $key, $val := .Values.cronjobs }}
+{{- range $name, $schedule := .Values.python.cronJobSchedule }}
 ---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ include "python-api.fullname" $ }}-{{ $key }}
+  name: {{ include "python-api.fullname" $ }}-{{ $name }}
   labels:
     {{- include "python-api.labels" $ | nindent 4 }}
   annotations:
-    purpose: "Cronjob ktory co minute podpija nam counter python'a"
+    purpose: "cronjob do automatycznego podbijania countera pythona"
 spec:
-  concurrencyPolicy: Replace
-  successfulJobsHistoryLimit: 1
-  schedule: {{ default "* * * * *" $val | quote }}
+  successfulJobsHistoryLimit: 0
+  schedule: {{ default "* * * * *" $schedule | quote }}
   jobTemplate:
     metadata:
       labels:
         {{- include "python-api.labels" $ | nindent 8 }}
     spec:
       template:
-        metadata:
-          labels:
-            {{- include "python-api.labels" $ | nindent 12 }}
         spec:
           containers:
-          - name: python-counter
+          - name: counter
             image: cmd.cat/curl
-            args:
+            command:
             - curl
             - -XPOST
-            - {{ include "python-api-app.name" $ }}/api/v1/info
+            - {{ include "python-api.fullname" $ }}-app/api/v1/info
           restartPolicy: Never
 {{- end }}

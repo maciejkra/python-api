@@ -8,10 +8,8 @@ metadata:
     "helm.sh/hook": test
 spec:
   containers:
-    - name: test
-      image: cmd.cat/curl
-      args:
-      - curl
-      - -f
-      - {{ include "python-api-app.name" $ }}/api/v1/info
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "python-api.fullname" . }}-app']
   restartPolicy: Never

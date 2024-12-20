@@ -23,15 +23,6 @@ If release name contains chart name it will be used as a full name.
 {{- end }}
 {{- end }}
 
-{{- define "python-api-app.name" -}}
-{{- include "python-api.fullname" . }}-app
-{{- end }}
-
-{{- define "python-api-redis.name" -}}
-{{- include "python-api.fullname" . }}-redis
-{{- end }}
-
-
 {{/*
 Create chart name and version as used by the chart label.
 */}}
@@ -42,6 +33,11 @@ Create chart name and version as used by the chart label.
 {{/*
 Common labels
 */}}
+{{- define "python-api.app.selectorLabels" -}}
+{{ include "python-api.selectorLabels" . }}
+app: python
+{{- end }}
+
 {{- define "python-api.labels" -}}
 helm.sh/chart: {{ include "python-api.chart" . }}
 {{ include "python-api.selectorLabels" . }}
@@ -57,4 +53,15 @@ Selector labels
 {{- define "python-api.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "python-api.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "python-api.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (include "python-api.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
 {{- end }}

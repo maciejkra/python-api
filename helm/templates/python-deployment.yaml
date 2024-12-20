@@ -1,33 +1,48 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "python-api-app.name" . }}
+  name: {{ include "python-api.fullname" . }}
   labels:
-    {{- include "python-api.labels" $ | nindent 4 }}
+    {{- include "python-api.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.python.replicas }}
   revisionHistoryLimit: 0
   selector:
     matchLabels:
-      {{- include "python-api.selectorLabels" . | nindent 6 }}
-      app: python
+      {{- include "python-api.app.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
         app: python
-        {{- include "python-api.labels" $ | nindent 8 }}
+        {{- include "python-api.labels" . | nindent 8 }}
     spec:
+      {{- if .Values.python.affinity }}
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - python
+            topologyKey: kubernetes.io/hostname
+      {{- end }}
+      {{- if .Values.python.tsc }}
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            app: python
+            {{- include "python-api.selectorLabels" . | nindent 12 }}
+      {{- end }}
       enableServiceLinks: false
       containers:
       - name: python-api
-        image: "{{- with .Values.registry }}{{ . }}/{{- end }}{{ .Values.python.image}}:{{ .Values.python.tag }}"
-        resources:
-          requests:
-            cpu: {{ .Values.python.resources.requests.cpu }}
-            memory: {{ .Values.python.resources.requests.mem }}
-          limits:
-            cpu: {{ .Values.python.resources.limits.cpu }}
-            memory: {{ .Values.python.resources.limits.mem }}            
+        image: {{ with .Values.registry }}{{ . }}/{{ end }}{{ .Values.python.image.name }}:{{ .Values.python.image.tag }}
+        resources: {}
         ports:
           - containerPort: 5002
             name: api
@@ -41,15 +56,5 @@ spec:
         envFrom:
           - configMapRef:
               name: {{ include "python-api.fullname" . }}
-      {{- if .Values.python.affinity }}    
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchExpressions:
-                - key: app
-                  operator: In
-                  values:
-                  - python
-              topologyKey: kubernetes.io/hostname
-      {{- end }}
+        resources:
+          {{- toYaml .Values.python.resources | nindent 10 }}

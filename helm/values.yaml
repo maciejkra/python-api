@@ -1,36 +1,28 @@
-registry:
-nameOverride:
-fullnameOverride:
+registry: 
+
 python:
   logLevel: INFO
+  cronJobSchedule: 
+    cron1: "* * * * *"
+    cron2: "*/2 * * * *"
   replicas: 1
-  image: krajewskim/python-api
-  tag: new
-  resources:
-    requests:
-      cpu: 0.1
-      mem: 100Mi
-    limits:
-      cpu: 1
-      mem: 250Mi
+  tsc: false
   affinity: false
-
-cronjobs:
-  cronjob1: "* * * * *"
-  cronjob2: "*/2 * * * *"
+  image:
+    name: krajewskim/python-api
+    tag: new
+  resources:
+    limits:
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
 
 ingress:
   ingressClassName: nginx
   host: api.127.0.0.1.nip.io
 
 redis:
-  storageClassName:
-  size: 10Mi
-  resources:
-    requests:
-      cpu: 0.1
-      mem: 100Mi
-    limits:
-      cpu: 1
-      mem: 250Mi
-
+  pvc:
+    size: 10Mi
+    storageClassName:

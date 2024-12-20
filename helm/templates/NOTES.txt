@@ -1,10 +1,10 @@
-Python app is installed!
+Python app has been installed!
+Run:
 
-RUN:
     curl {{ .Values.ingress.host }} - to get the counter
 
 or
 
     curl -XPOST {{ .Values.ingress.host }} - to increase the counter
 
-Have fun!!
+Have Fun!!

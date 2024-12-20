@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "python-api-redis.name" . }}
+  name: {{ include "python-api.fullname" . }}-db
   labels:
-    {{- include "python-api.labels" $ | nindent 4 }}
+    {{- include "python-api.labels" . | nindent 4 }}
 spec:
   clusterIP: None
   selector:
-    {{- include "python-api.selectorLabels" . | nindent 4 }}
     app: redis
+    {{- include "python-api.selectorLabels" . | nindent 4 }}
   ports:
   - port: 6379
