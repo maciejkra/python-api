@@ -5,6 +5,7 @@ metadata:
   labels:
     {{- include "python-api.labels" . | nindent 4 }}
 spec:
+  serviceName: {{ include "python-api.fullname" . }}-db
   selector:
     matchLabels:
       app: redis
