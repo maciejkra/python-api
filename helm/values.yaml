@@ -19,8 +19,16 @@ python:
       memory: 128Mi
 
 ingress:
+  enabled: false
   ingressClassName: nginx
   host: api.127.0.0.1.nip.io
+
+gatewayApi:
+  enabled: true
+  hostname: api.127.0.0.1.nip.io
+  gateway:
+    name: training-gateway
+    namespace: default
 
 redis:
   pvc:

@@ -1,0 +1,25 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "python-api.fullname" . }}-redis
+  labels:
+    {{- include "python-api.labels" . | nindent 4 }}
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: redis
+      {{- include "python-api.selectorLabels" . | nindent 6 }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "python-api.fullname" . }}-python
+  labels:
+    {{- include "python-api.labels" . | nindent 4 }}
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: python
+      {{- include "python-api.selectorLabels" . | nindent 6 }}

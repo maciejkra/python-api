@@ -1,4 +1,13 @@
 Python app has been installed!
+{{ if .Values.gatewayApi.enabled }}
+Run:
+
+    curl {{ .Values.gatewayApi.hostname }} - to get the counter
+
+or
+
+    curl -XPOST {{ .Values.gatewayApi.hostname }} - to increase the counter
+{{ else if .Values.ingress.enabled }}
 Run:
 
     curl {{ .Values.ingress.host }} - to get the counter
@@ -6,5 +15,5 @@ Run:
 or
 
     curl -XPOST {{ .Values.ingress.host }} - to increase the counter
-
+{{ end }}
 Have Fun!!
